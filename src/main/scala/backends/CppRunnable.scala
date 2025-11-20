@@ -38,6 +38,8 @@ private class CppRunnable extends CppLike:
     case _: TFun =>
       throw Impossible("Cannot emit function types")
     case TAlias(n) => value(n)
+    case _: TSecLabeled =>
+      throw Impossible("A security-labeled type made it to the backend. It should have been erased")
 
   def emitArrayDecl(ta: TArray, id: Id) = emitType(ta) <+> text(s"&$id")
 

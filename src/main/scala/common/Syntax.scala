@@ -73,7 +73,7 @@ object Syntax:
       case TFun(args, ret) => s"${args.mkString("->")} -> ${ret}"
       case TRecType(n, _) => s"$n"
       case TAlias(n) => n.toString
-      case TSecLabeled(ty, label) => s"$ty$$$label"
+      case TSecLabeled(ty, label) => s"$ty{$label}"
   // Types that can be upcast to Ints
   sealed trait IntType
   case class TSizedInt(len: Int, unsigned: Boolean) extends Type with IntType

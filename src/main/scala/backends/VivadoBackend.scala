@@ -146,7 +146,9 @@ private class VivadoBackend(config: Config) extends CppLike:
     case TArray(typ, _, _) => emitType(typ)
     case TRecType(n, _) => text(n.toString)
     case _: TFun => throw Impossible("Cannot emit function types")
-    case TAlias(n) => text(n.toString)
+    case TAlias(n) => text(n.toString) 
+    case _: TSecLabeled =>
+      throw Impossible("A security-labeled type made it to the backend. It should have been erased.")
 
   def emitProg(p: Prog, c: Config): String =
     val layout =
