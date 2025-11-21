@@ -53,7 +53,7 @@ object Syntax:
   enum SecurityLabel:
     case High
     case Low
-    case Dependent(fn : Id)
+    case Dependent(fnCall : Expr)
 
   sealed trait Type extends PositionalWithSpan:
     override def toString = this match
@@ -73,7 +73,7 @@ object Syntax:
       case TFun(args, ret) => s"${args.mkString("->")} -> ${ret}"
       case TRecType(n, _) => s"$n"
       case TAlias(n) => n.toString
-      case TSecLabeled(ty, label) => s"$ty{$label}"
+      case TSecLabeled(ty, label, public) => s"$ty<$label>"
   // Types that can be upcast to Ints
   sealed trait IntType
   case class TSizedInt(len: Int, unsigned: Boolean) extends Type with IntType
@@ -96,7 +96,7 @@ object Syntax:
   case class TRecType(name: Id, fields: Map[Id, Type]) extends Type
   case class TAlias(name: Id) extends Type
 
-  case class TSecLabeled(ty : Type, label : SecurityLabel) extends Type
+  case class TSecLabeled(ty : Type, label : SecurityLabel, public : Boolean) extends Type
 
   // Each dimension has a length and a bank
   type DimSpec = (Int, Int)

@@ -83,11 +83,18 @@ case class Parser(input: String):
       case (n, b) => (n, b.getOrElse(1))
     })
 
+  def securityLabel[K : P] : P[SecurityLabel] = ???
+
   def typ[K: P]: P[Type] =
-    positioned(P(typAtom ~ (braces(number).? ~ typIdx.rep(1)).?).map({
-      case (typ, Some((ports, dims))) =>
-        TArray(typ, dims.toList, ports.getOrElse(1))
-      case (typ, None) => typ
+    positioned(P(typAtom ~ (braces(number).? ~ typIdx.rep(1)).? ~ braces(securityLabel).?).map({
+      (typ, ports, secLabel) => {
+        val maybe_arr = ports match
+          case None => typ
+          case Some((ports, dims)) => TArray(typ, dims.toList, ports.getOrElse(1))
+        secLabel match
+          case None => maybe_arr
+          case Some(label) => TSecLabeled(maybe_arr, label, false) 
+      }
     }))
 
   // Literals
