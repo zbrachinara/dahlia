@@ -88,7 +88,7 @@ case class Parser(input: String):
   )
 
   def typ[K: P]: P[Type] =
-    positioned(P(typAtom ~ (braces(number).? ~ typIdx.rep(1)).? ~ braces(securityLabel).?).map({
+    positioned(P(typAtom ~ (braces(number).? ~ typIdx.rep(1)).? ~ angular(securityLabel).?).map({
       (typ, ports, secLabel) => {
         val maybe_arr = ports match
           case None => typ

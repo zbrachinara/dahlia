@@ -4,6 +4,11 @@ import TestUtils._
 import org.scalatest.funsuite.AnyFunSuite
 
 class ParsingTests extends AnyFunSuite:
+  test("security labels"):
+    parseAst("decl x: bit<64> <H>;")
+    parseAst("decl x: bit<64>[10 bank 5] <L>;")
+    parseAst("decl x: bit<64>[25 bank 5] <def foo(a: bool) {}>")
+
   test("numbers"):
     parseAst("1;")
     parseAst("1.25;")
