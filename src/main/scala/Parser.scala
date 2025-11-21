@@ -1,14 +1,12 @@
 package fuselang
 
 import scala.util.parsing.input.OffsetPosition
-
-import fastparse._
-import fastparse.JavaWhitespace._
-
-import fuselang.common._
-import Syntax._
+import fastparse.*
+import fastparse.JavaWhitespace.*
+import fuselang.common.*
+import Syntax.*
 import Configuration.stringToBackend
-import Utils.RichOption
+import Utils.{RichOption, asPartial}
 import CompilerError.BackendError
 
 case class Parser(input: String):
@@ -83,7 +81,11 @@ case class Parser(input: String):
       case (n, b) => (n, b.getOrElse(1))
     })
 
-  def securityLabel[K : P] : P[SecurityLabel] = ???
+  def securityLabel[K : P] : P[SecurityLabel] = P(
+    kw("H").map(_ => SecurityLabel.High) |
+    kw("L").map(_ => SecurityLabel.Low) |
+    appOrVar.map(SecurityLabel.Dependent.apply)
+  )
 
   def typ[K: P]: P[Type] =
     positioned(P(typAtom ~ (braces(number).? ~ typIdx.rep(1)).? ~ braces(securityLabel).?).map({
@@ -93,7 +95,7 @@ case class Parser(input: String):
           case Some((ports, dims)) => TArray(typ, dims.toList, ports.getOrElse(1))
         secLabel match
           case None => maybe_arr
-          case Some(label) => TSecLabeled(maybe_arr, label, false) 
+          case Some(label) => TSecLabeled(maybe_arr, label, false)
       }
     }))
 
