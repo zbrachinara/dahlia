@@ -261,7 +261,7 @@ object Syntax:
   case class FuncDef(
       id: Id,
       args: Seq[Decl],
-      retTy: Type,
+      var retTy: Type,
       bodyOpt: Option[Command]
   ) extends Definition
   case class RecordDef(name: Id, fields: Map[Id, Type]) extends Definition:
@@ -281,7 +281,7 @@ object Syntax:
       defs: Seq[FuncDef]
   ) extends PositionalWithSpan
 
-  case class Decl(id: Id, typ: Type) extends PositionalWithSpan
+  case class Decl(id: Id, var typ: Type) extends PositionalWithSpan
   case class Prog(
       includes: Seq[Include],
       defs: Seq[Definition],
