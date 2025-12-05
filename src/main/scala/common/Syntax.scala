@@ -142,11 +142,11 @@ object Syntax:
   case class ERecLiteral(fields: Map[Id, Expr]) extends Expr
   case class EApp(func: Id, args: Seq[Expr]) extends Expr
   case class EVar(id: Id) extends Expr
-  case class ECast(e: Expr, castType: Type) extends Expr
+  case class ECast(e: Expr, var castType: Type) extends Expr
 
   case class CRange(
       iter: Id,
-      castType: Option[Type],
+      var castType: Option[Type],
       reversed: Boolean,
       s: Int,
       e: Int,

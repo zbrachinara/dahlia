@@ -3,7 +3,7 @@ package typechecker
 import fuselang.common.Checker.{Checker, PartialChecker}
 import fuselang.common.EnvHelpers.{ScopeManager, UnitEnv}
 import fuselang.common.Syntax
-import fuselang.common.Syntax.{CPar, Decl, Definition, Expr, FuncDef, Id, Prog, RecordDef, TSecLabeled, TVoid, Type}
+import fuselang.common.Syntax.{CLet, CPar, CRange, Command, Decl, Definition, ECast, Expr, FuncDef, Id, Prog, RecordDef, TSecLabeled, TVoid, Type}
 
 class IntegrityCheckEnv extends ScopeManager[IntegrityCheckEnv] {
   /**
@@ -40,10 +40,19 @@ object IntegrityCheck {
 
     override type Env = UnitEnv
     override val emptyEnv : UnitEnv = UnitEnv()
-    
-//    val partialZ
-    private val partialExprCheck: PartialFunction[(Expr, Env), Env] = ???
-//    override checkC(cmd : Command)(implicit env : Env) : Env = ???
+
+    override def checkC(cmd : Command)(implicit env : Env) : Env = mergeCheckC({
+      case (c @ CRange(_, _, _, _, _, _), env) =>
+        c.castType = c.castType map strip_label
+        env
+      case (c @ CLet(_, _, expr), env) => 
+        c.typ = c.typ map strip_label
+        expr.map(checkE).getOrElse(env) // From the superclass
+    })(cmd, env)
+
+    override def checkE(expr: Expr)(implicit env: UnitEnv): UnitEnv = mergeCheckE({
+      case (e @ ECast(_, _), _) => ???
+    })(expr, env)
     
   }
 
