@@ -41,6 +41,10 @@ object IntegrityCheck {
     override type Env = UnitEnv
     override val emptyEnv : UnitEnv = UnitEnv()
 
+    private def strip_label(ty: Type): Type = ty match
+      case TSecLabeled(datatype, _, _) => datatype
+      case x => x
+
     override def checkC(cmd : Command)(implicit env : Env) : Env = mergeCheckC({
       case (c @ CRange(_, _, _, _, _, _), env) =>
         c.castType = c.castType map strip_label
@@ -51,14 +55,12 @@ object IntegrityCheck {
     })(cmd, env)
 
     override def checkE(expr: Expr)(implicit env: UnitEnv): UnitEnv = mergeCheckE({
-      case (e @ ECast(_, _), _) => ???
+      case (e @ ECast(einner, _), env) =>
+        e.typ = e.typ map strip_label
+        checkE(einner) // From the superclass
     })(expr, env)
     
   }
-
-  private def strip_label(ty : Type) : Type = ty match
-    case TSecLabeled(datatype, _, _) => datatype
-    case x => x
 
   /**
    * Erases security labels from types.
@@ -68,16 +70,6 @@ object IntegrityCheck {
    * @param program A valid program, optionally containing security labels
    */
   def erase(program : Prog) : Unit = {
-    for (definition <- walk_definitions(program)) {
-      definition match
-        case fn @ FuncDef(_, args, _, body) =>
-          fn.retTy = strip_label(fn.retTy)
-          for (arg <- args) {
-            arg.typ = strip_label(arg.typ)
-          }
-          
-          ???
-        case RecordDef(_, _) => ???
-    }
+    Eraser.check(program)
   } // TODO crawl all declarations
 }
