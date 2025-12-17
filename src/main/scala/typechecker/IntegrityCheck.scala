@@ -35,15 +35,23 @@ object IntegrityCheck {
    * @param program A valid program, optionally containing security labels
    */
   def integrityCheck(program : Prog) : Unit = ???
-  
+
+  private def strip_label(ty: Type): Type = ty match
+    case TSecLabeled(datatype, _, _) => datatype
+    case x => x
+
+
   private object Eraser extends PartialChecker {
 
     override type Env = UnitEnv
     override val emptyEnv : UnitEnv = UnitEnv()
 
-    private def strip_label(ty: Type): Type = ty match
-      case TSecLabeled(datatype, _, _) => datatype
-      case x => x
+    override def checkDef(defi: Definition)(implicit env: UnitEnv): UnitEnv = defi match
+      case fn @ FuncDef(_, _, _, _) => 
+        fn.retTy = strip_label(fn.retTy)
+        fn.args = fn.args map {x => Decl(x.id, strip_label(x.typ) )}
+        super.checkDef(fn)
+      case d => super.checkDef(d)
 
     override def checkC(cmd : Command)(implicit env : Env) : Env = mergeCheckC({
       case (c @ CRange(_, _, _, _, _, _), env) =>
@@ -70,6 +78,9 @@ object IntegrityCheck {
    * @param program A valid program, optionally containing security labels
    */
   def erase(program : Prog) : Unit = {
+    program.decls = program.decls.map { decl =>
+      Decl(decl.id, strip_label(decl.typ))
+    }
     Eraser.check(program)
   } // TODO crawl all declarations
 }

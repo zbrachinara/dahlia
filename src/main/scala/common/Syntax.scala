@@ -260,7 +260,7 @@ object Syntax:
     */
   case class FuncDef(
       id: Id,
-      args: Seq[Decl],
+      var args: Seq[Decl],
       var retTy: Type,
       bodyOpt: Option[Command]
   ) extends Definition
@@ -286,7 +286,7 @@ object Syntax:
       includes: Seq[Include],
       defs: Seq[Definition],
       decors: Seq[CDecorate],
-      decls: Seq[Decl],
+      var decls: Seq[Decl],
       cmd: Command
   ) extends PositionalWithSpan
 
