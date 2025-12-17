@@ -3,9 +3,12 @@ package typechecker
 import fuselang.common.Checker.{Checker, PartialChecker}
 import fuselang.common.EnvHelpers.{ScopeManager, UnitEnv}
 import fuselang.common.Syntax
-import fuselang.common.Syntax.{CLet, CPar, CRange, Command, Decl, Definition, ECast, Expr, FuncDef, Id, Prog, RecordDef, TSecLabeled, TVoid, Type}
+import fuselang.common.Syntax.{CLet, CPar, CRange, Command, Decl, Definition, ECast, Expr, FuncDef, Id, Prog, RecordDef, SecurityLabel, TSecLabeled, TVoid, Type}
 
 class IntegrityCheckEnv extends ScopeManager[IntegrityCheckEnv] {
+  val security_state : SecurityLabel = SecurityLabel.Low 
+  
+  
   /**
    * Merge this environment with [[that]] for some abstract merge function.
    *
@@ -16,19 +19,18 @@ class IntegrityCheckEnv extends ScopeManager[IntegrityCheckEnv] {
 
 object IntegrityCheck {
 
-  object Checker extends Checker:
+  object FlowChecker extends PartialChecker:
     override type Env = IntegrityCheckEnv
     override val emptyEnv: Env = IntegrityCheckEnv()
-
-
-
+    
+    
+  
   private def walk_definitions(program : Prog) : Seq[Definition] =
     val Prog(includes, defs, _, decls, cmd) = program
     val allDefs = includes.flatMap(_.defs) ++ defs
     val topFunc = FuncDef(Id(""), decls, TVoid(), Some(cmd))
     allDefs ++ List(topFunc)
 
-  // TODO should this also check or add annotations for timing information?
   /**
    * Checks that a program satisfies its security labels wrt information flow
    *

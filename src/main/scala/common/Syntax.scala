@@ -50,10 +50,15 @@ object Syntax:
   case object Read extends Capability
   case object Write extends Capability
 
-  enum SecurityLabel:
-    case High
-    case Low
-    case Dependent(fnCall : Expr)
+//  enum SecurityLabel:
+//    case High
+//    case Low
+//    case Dependent(fnCall : EApp)
+//
+//    def max(other: SecurityLabel) = (this, other) match
+//      case (SecurityLabel.High, _) | (_, SecurityLabel.High) => ???
+//      case (SecurityLabel.Low, SecurityLabel.Low) => ???
+//      case (SecurityLabel.Low, SecurityLabel.Dependent(call)) | 
 
   sealed trait Type extends PositionalWithSpan:
     override def toString = this match
@@ -143,6 +148,21 @@ object Syntax:
   case class EApp(func: Id, args: Seq[Expr]) extends Expr
   case class EVar(id: Id) extends Expr
   case class ECast(e: Expr, var castType: Type) extends Expr
+
+  enum SecurityLabel:
+    case High
+    case Low
+    case Dependent(fnCall: EApp)
+
+    def max(other: SecurityLabel): SecurityLabel = (this, other) match
+      case (SecurityLabel.High, _) | (_, SecurityLabel.High) => ???
+      case (SecurityLabel.Low, SecurityLabel.Low) => ???
+      
+      // These have the same outcome but scala doesn't support branches with variables here I think
+      case (SecurityLabel.Low, SecurityLabel.Dependent(fnCall)) => SecurityLabel.Dependent(fnCall)
+      case (SecurityLabel.Dependent(fnCall), SecurityLabel.Low) => SecurityLabel.Dependent(fnCall)
+      
+      case (SecurityLabel.Dependent(call1), SecurityLabel.Dependent(call2)) => ???
 
   case class CRange(
       iter: Id,
