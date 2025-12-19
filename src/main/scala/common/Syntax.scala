@@ -155,8 +155,8 @@ object Syntax:
     case Dependent(fnCall: Expr)
 
     def max(other: SecurityLabel): SecurityLabel = (this, other) match
-      case (SecurityLabel.High, _) | (_, SecurityLabel.High) => ???
-      case (SecurityLabel.Low, SecurityLabel.Low) => ???
+      case (SecurityLabel.High, _) | (_, SecurityLabel.High) => SecurityLabel.High
+      case (SecurityLabel.Low, SecurityLabel.Low) => SecurityLabel.Low
       
       // These have the same outcome but scala doesn't support branches with variables here I think
       case (SecurityLabel.Low, SecurityLabel.Dependent(fnCall)) => SecurityLabel.Dependent(fnCall)
@@ -164,6 +164,12 @@ object Syntax:
       
       case (SecurityLabel.Dependent(call1), SecurityLabel.Dependent(call2)) => ???
 
+    def leq(other: SecurityLabel): Boolean = (this, other) match
+      case (SecurityLabel.Low, other) => true
+      case (SecurityLabel.High, SecurityLabel.High) => true
+      case (SecurityLabel.Dependent(fnCall), _) => ???
+      case (_, SecurityLabel.Dependent(fnCall)) => ???
+      case _ => false
   case class CRange(
       iter: Id,
       var castType: Option[Type],
