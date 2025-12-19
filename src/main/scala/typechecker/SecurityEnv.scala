@@ -24,8 +24,8 @@ object SecurityEnv:
    *   it is balanced at the logical timestep level)
    */
   sealed trait Environment
-    extends ScopeManager[Environment]
-      with Tracker[Id | Command, SecurityLabel | Int, Environment]:
+    extends ScopeManager[Environment]:
+//      with Tracker[Id, SecurityLabel, Environment], Tracker[Command, Int, Environment]:
 
     /**
      * Associate a gadget to the name of the physical resource it consumes.
@@ -84,17 +84,12 @@ object SecurityEnv:
                           commandMap:  ScopedMap[Command, Int] = ScopedMap(),
                         )(implicit val res: Int)
     extends Environment {
-    /**
-     * Associate a gadget to the name of the physical resource it consumes.
-     * Note that this DOES NOT associate it to the exact list of resources
-     * consumed.
-     *
-     * @param gadget   Name of the gadget that consumes the resource.
-     * @param resource The name of the physical resource being consumed.
-     *
-     *                 For example, the call addGadget("V_A", "A") associates "V_A" to the
-     *                 physical resource "A".
-     */
+    def update_label(key : Id, value : SecurityLabel) : Environment =
+      this.copy(securityMap = securityMap.add(key, value).getOrThrow(AlreadyBound(key)))
+      
+    def update_block(key : Command, value : Int) : Environment =
+      this.copy(commandMap = commandMap.add(key, value).getOrThrow(AlreadyBound(Id(key.toString))))
+    
     override def add(key: Id | Command, value: SecurityLabel | Int): Environment =
       (key, value) match {
         case (id: Id, lbl: SecurityLabel) =>
@@ -133,17 +128,20 @@ object SecurityEnv:
      *          containing bindings for physical resource and gadgets.
      */
     override def withScope(resources: Int)(inScope: Environment => Environment): (Environment, Map[Id, SecurityLabel], Map[Command, Int]) = ???
+    
+    def label_of_id(k : Id): Option[SecurityLabel] = securityMap.get(k)
+    def index_of_block(block : Command): Option[Int] = commandMap.get(block)
 
     /**
      * Get the resource associated with key if it is present.
      */
-    override def get(k: Id | Command): Option[SecurityLabel | Int] =
+    def get(k: Id | Command): Option[SecurityLabel | Int] =
       k match {
         case id: Id => securityMap.get(id)
         case cmd: Command => commandMap.get(cmd)
       }
 
-    override def apply(k: Id | Command): SecurityLabel | Int =
+    def apply(k: Id | Command): SecurityLabel | Int =
       get(k).getOrThrow {
         k match {
           case id: Id => Unbound(id)
