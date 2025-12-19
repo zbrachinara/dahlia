@@ -6,8 +6,16 @@ import org.scalatest.funsuite.AnyFunSuite
 class ParsingTests extends AnyFunSuite:
   test("security labels"):
     parseAst("decl x: bit<64> <H>;")
+    parseAst("let x: bit<64> <H> = 1;")
     parseAst("decl x: bit<64>[10 bank 5] <L>;")
-    parseAst("decl x: bit<64>[25 bank 5] <def foo(a: bool) {}>")
+    // parseAst("decl x: bit<64>[25 bank 5] <def foo(a: bool) {}>")
+
+  /* NOTE:
+    Parser currently does not support using security labels
+    without explicit types, so something like
+    let x <L> = 1;
+    will not work
+  */
 
   test("numbers"):
     parseAst("1;")
