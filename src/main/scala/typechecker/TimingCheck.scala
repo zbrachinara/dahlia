@@ -5,14 +5,6 @@ import fuselang.common.EnvHelpers.{ScopeManager, UnitEnv}
 import fuselang.common.Syntax
 import fuselang.common.Syntax.{CIf, CLet, CPar, CRange, CSeq, Command, Decl, Definition, ECast, Expr, FuncDef, Id, Prog, RecordDef, TSecLabeled, TVoid, Type}
 import fuselang.typechecker.SecurityEnv
-class TimingCheckEnv extends IntegrityCheckEnv {
-  /**
-   * Merge this environment with [[that]] for some abstract merge function.
-   *
-   * @assumes: this.getBoundIds == that.getBoundIds
-   */
-  override def merge(that: TimingCheckEnv): TimingCheckEnv = ???
-}
 
 object TimingCheck {
 
