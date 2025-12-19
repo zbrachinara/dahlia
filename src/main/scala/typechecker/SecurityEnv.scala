@@ -25,26 +25,26 @@ object SecurityEnv:
    */
   sealed trait Environment
     extends ScopeManager[Environment]
-      with Tracker[Id, SecurityLabel, Environment]:
+      with Tracker[Id | Command, SecurityLabel | Int, Environment]:
 
     /**
      * Associate a gadget to the name of the physical resource it consumes.
      * Note that this DOES NOT associate it to the exact list of resources
      * consumed.
-     * @param gadget Name of the gadget that consumes the resource.
-     * @param resource The name of the physical resource being consumed.
+     * @param key Name of the gadget that consumes the resource.
+     * @param value The name of the physical resource being consumed.
      *
      * For example, the call addGadget("V_A", "A") associates "V_A" to the
      * physical resource "A".
      */
-    def add(gadget: Id, resource: SecurityLabel): Environment
+    def add(key: Id | Command, value: SecurityLabel | Int): Environment
 
     /**
      * Get the gadget associated with identifier.
      * @param gadget Name of the gadget that consumes the resource.
      *
      */
-    def apply(id: Id): SecurityLabel
+    def apply(id: Id | Command): SecurityLabel | Int
 
 //    /**
 //     * Create a new Environment with all the bindings in [[binds]] added to the
@@ -78,7 +78,7 @@ object SecurityEnv:
      * bindings bound in this scope are returned
      *
      * @param inScope Commands executed with the inner scope.
-     * @param resources Amount of resources required inside new scope.
+     * @param timesteps Amount of timesteps that must be taken in the new scope
      * @returns A new environment without the topmost scope and scopes
      *          containing bindings for physical resource and gadgets.
      */
@@ -103,7 +103,7 @@ object SecurityEnv:
      *                 For example, the call addGadget("V_A", "A") associates "V_A" to the
      *                 physical resource "A".
      */
-    override def add(gadget: Id, resource: SecurityLabel): Environment = ???
+    override def add(gadget: Id | Command, resource: SecurityLabel | Int): Environment = ???
     
     override def addResource(name: Id, info: ArrayInfo): Environment = ???
 
@@ -131,7 +131,7 @@ object SecurityEnv:
     /**
      * Get the resource associated with key if it is present.
      */
-    override def get(k: Id): Option[SecurityLabel] = ???
+    override def get(k: Id | Command): Option[SecurityLabel | Int] = ???
 
-    override def apply(id: Id): SecurityLabel = ???
+    override def apply(id: Id | Command): SecurityLabel | Int = ???
   }
