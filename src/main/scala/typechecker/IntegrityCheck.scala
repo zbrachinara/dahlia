@@ -3,7 +3,7 @@ package typechecker
 import fuselang.common.Checker.{Checker, PartialChecker}
 import fuselang.common.EnvHelpers.{ScopeManager, UnitEnv}
 import fuselang.common.Syntax
-import fuselang.common.Syntax.{CLet, CPar, CRange, Command, Decl, Definition, ECast, Expr, FuncDef, Id, Prog, RecordDef, SecurityLabel, TSecLabeled, TVoid, Type}
+import fuselang.common.Syntax.{CIf, CLet, CPar, CRange, CReduce, CReturn, CSplit, CUpdate, CView, CWhile, Command, Decl, Definition, ECast, Expr, FuncDef, Id, Prog, RecordDef, SecurityLabel, TSecLabeled, TVoid, Type}
 
 class IntegrityCheckEnv extends ScopeManager[IntegrityCheckEnv] {
   val security_state : SecurityLabel = SecurityLabel.Low 
@@ -22,15 +22,30 @@ object IntegrityCheck {
   object FlowChecker extends PartialChecker:
     override type Env = IntegrityCheckEnv
     override val emptyEnv: Env = IntegrityCheckEnv()
-    
-    
-  
-  private def walk_definitions(program : Prog) : Seq[Definition] =
-    val Prog(includes, defs, _, decls, cmd) = program
-    val allDefs = includes.flatMap(_.defs) ++ defs
-    val topFunc = FuncDef(Id(""), decls, TVoid(), Some(cmd))
-    allDefs ++ List(topFunc)
 
+    override def checkC(cmd: Command)(implicit env: Env): Env = super.mergeCheckC({ 
+      // Excluded:
+      // CPar and CSeq are just connectives
+      // CFor cannot depend on runtime data
+      // Might need CExpr or CBlock -- consult 
+      
+      case (CLet(id, typ, e), _) => ??? // Allow e to be assigned to id if label e flows to id (e -> id)
+      // TDOO do we really need to have CView and CSplit? or are they desugared immediately?
+      case (CView(id, arrId, dims), _) => ??? // Functionally the same as a CLet (arrId -> id)
+      case (CSplit(id, arrId, factors), _) => ??? // Functionally the same as a CLet (arrId -> id)
+      case (CIf(cond, cons, alt), _) => ??? // Complicated. Flesh this one out later
+      case (CWhile(cond, pipeline, body), _) => ??? // Functionally the same as a CIf
+      case (CUpdate(lhs, rhs), _) => ??? // Functionally the same as a let (rhs -> lhs)
+      case (CReduce(rop, lhs, rhs), _) => ??? // Functionally the same as a let (rhs -> lhs)
+      case (CReturn(exp), _) => ??? // Needs environment information from checkDecl
+      
+      case (_, _) => ???
+    })(cmd, env)
+
+    override def checkE(expr: Expr)(implicit env: Env): Env = super.mergeCheckE({
+      case _ => ???
+    })(expr, env)
+  
   /**
    * Checks that a program satisfies its security labels wrt information flow
    *
