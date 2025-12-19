@@ -40,20 +40,11 @@ object SecurityEnv:
     def add(key: Id | Command, value: SecurityLabel | Int): Environment
 
     /**
-     * Get the gadget associated with identifier.
-     * @param gadget Name of the gadget that consumes the resource.
+     * Get the value associated with the key.
+     * @param id: tje key
      *
      */
     def apply(id: Id | Command): SecurityLabel | Int
-
-//    /**
-//     * Create a new Environment with all the bindings in [[binds]] added to the
-//     * current scope.
-//     * @param binds A scope with bindings to be added to the environment.
-//     * @returns A new environment with all the bindings in the environment.
-//     */
-//    def ++(binds: Map[Id, Gadget]): Environment =
-//      binds.foldLeft[Environment](this)({ case (e, b) => e.add(b._1, b._2) })
 
     /**
      * Add physical resources to the environment.
@@ -84,12 +75,13 @@ object SecurityEnv:
      */
     def withScope(resources: Int)(
       inScope: Environment => Environment
-    ): (Environment, Map[Id, ArrayInfo], Map[Id, Gadget])
+    ): (Environment, Map[Id, SecurityLabel], Map[Command, Int])
   
 
 
   private case class Env(
-                          securityMap: ScopedMap[Id, SecurityLabel] = ScopedMap()
+                          securityMap: ScopedMap[Id, SecurityLabel] = ScopedMap(),
+                          commandMap:  ScopedMap[Command, Int] = ScopedMap(),
                         )(implicit val res: Int)
     extends Environment {
     /**
@@ -103,17 +95,31 @@ object SecurityEnv:
      *                 For example, the call addGadget("V_A", "A") associates "V_A" to the
      *                 physical resource "A".
      */
-    override def add(gadget: Id | Command, resource: SecurityLabel | Int): Environment = ???
-    
+    override def add(key: Id | Command, value: SecurityLabel | Int): Environment =
+      (key, value) match {
+        case (id: Id, lbl: SecurityLabel) =>
+          this.copy(securityMap =
+            securityMap.add(id, lbl).getOrThrow(AlreadyBound(id))
+          )
+
+        case (cmd: Command, n: Int) =>
+          this.copy(commandMap = 
+            commandMap.add(cmd, n).getOrThrow(AlreadyBound(Id(cmd.toString)))
+          )
+        case _ =>
+          sys.error(s"Type mismatch in SecurityEnv.add: $key ↦ $value")
+      }
+      
     override def addResource(name: Id, info: ArrayInfo): Environment = ???
 
     /**
-     * Merge this environment with [[next]] to create e' such that for each
-     * physical resource id, e'.banks(id) <= this.banks(id) and e'.banks(id) <=
-     * that.banks(id).
+     * We want to enforce the fact that an Id corresponds to a security label and 
+     * a command corresponds to an int, and the environment we merge with must have equal 
+     * domain
      *
-     * @requires: this.physicalResources subsetOf next.physicalResources
-     * @requires: this.gadgetDefs subsetOf next.gadgetDefs
+     * @requires: this.values of type command subsetOf next.values of type command
+     * @requires: this.values of type Id subsetOf next.values of type Id
+     * @requires: similar for keys but with labels and ints
      */
     override def merge(next: Environment): Environment = ???
 
@@ -122,16 +128,26 @@ object SecurityEnv:
      * bindings bound in this scope are returned
      *
      * @param inScope   Commands executed with the inner scope.
-     * @param resources Amount of resources required inside new scope.
+     * @param count amount of logical timesteps the inner scope can take
      * @returns A new environment without the topmost scope and scopes
      *          containing bindings for physical resource and gadgets.
      */
-    override def withScope(resources: Int)(inScope: Environment => Environment): (Environment, Map[Id, ArrayInfo], Map[Id, Gadget]) = ???
+    override def withScope(resources: Int)(inScope: Environment => Environment): (Environment, Map[Id, SecurityLabel], Map[Command, Int]) = ???
 
     /**
      * Get the resource associated with key if it is present.
      */
-    override def get(k: Id | Command): Option[SecurityLabel | Int] = ???
+    override def get(k: Id | Command): Option[SecurityLabel | Int] =
+      k match {
+        case id: Id => securityMap.get(id)
+        case cmd: Command => commandMap.get(cmd)
+      }
 
-    override def apply(id: Id | Command): SecurityLabel | Int = ???
+    override def apply(k: Id | Command): SecurityLabel | Int =
+      get(k).getOrThrow {
+        k match {
+          case id: Id => Unbound(id)
+          case cmd: Command => Unbound(Id(cmd.toString))
+        }
+      }
   }
