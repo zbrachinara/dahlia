@@ -152,7 +152,7 @@ object Syntax:
   enum SecurityLabel:
     case High
     case Low
-    case Dependent(fnCall: EApp)
+    case Dependent(fnCall: Expr)
 
     def max(other: SecurityLabel): SecurityLabel = (this, other) match
       case (SecurityLabel.High, _) | (_, SecurityLabel.High) => ???
