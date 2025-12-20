@@ -22,18 +22,18 @@ object SecurityEnv:
    * - Variables, expressions and their security label
    * - For if statements, the number of `CSeq` encountered (to ensure that
    *   it is balanced at the logical timestep level)
-   */ 
+   */
   case class Env(
-                          securityMap: ScopedMap[Id, SecurityLabel] = ScopedMap(),
-                          commandMap:  ScopedMap[Command, Int] = ScopedMap(),
-                        )(implicit val res: Int)
+    securityMap: ScopedMap[Id, SecurityLabel] = ScopedMap(),
+    commandMap:  ScopedMap[Command, Int] = ScopedMap(),
+  )(implicit val res: Int)
     extends ScopeManager[Env] {
     def update_label(key : Id, value : SecurityLabel) : Env =
       this.copy(securityMap = securityMap.add(key, value).getOrThrow(AlreadyBound(key)))
-      
+
     def update_block(key : Command, value : Int) : Env =
       this.copy(commandMap = commandMap.add(key, value).getOrThrow(AlreadyBound(Id(key.toString))))
-    
+
     def add(key: Id | Command, value: SecurityLabel | Int): Env =
       (key, value) match {
         case (id: Id, lbl: SecurityLabel) =>
@@ -42,7 +42,7 @@ object SecurityEnv:
           )
 
         case (cmd: Command, n: Int) =>
-          this.copy(commandMap = 
+          this.copy(commandMap =
             commandMap.add(cmd, n).getOrThrow(AlreadyBound(Id(cmd.toString)))
           )
         case _ =>
@@ -72,9 +72,11 @@ object SecurityEnv:
      *          containing bindings for physical resource and gadgets.
      */
     def withScope(resources: Int)(inScope: Env => Env): (Env, Map[Id, SecurityLabel], Map[Command, Int]) = ???
-    
-    def label_of_id(k : Id): Option[SecurityLabel] = securityMap.get(k)
-    def index_of_block(block : Command): Option[Int] = commandMap.get(block)
+
+    def label_of_id(k : Id): SecurityLabel = securityMap.get(k).getOrThrow(Unbound(k))
+    def index_of_block(block : Command): Int = commandMap.get(block).getOrThrow(
+      RuntimeException("Internal error: Block expected to have been parsed, but was not found.")
+    )
 
     /**
      * Get the resource associated with key if it is present.

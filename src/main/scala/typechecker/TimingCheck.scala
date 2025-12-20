@@ -3,7 +3,7 @@ package typechecker
 import fuselang.common.Checker.{Checker, PartialChecker}
 import fuselang.common.EnvHelpers.{ScopeManager, UnitEnv}
 import fuselang.common.Syntax
-import fuselang.common.Syntax.{CIf, CLet, CPar, CRange, CSeq, Command, Decl, Definition, EArrAccess, EBinop, EBool, ECast, EInt, ERational, Expr, FuncDef, Id, Prog, RecordDef, SecurityLabel, TSecLabeled, TVoid, Type}
+import fuselang.common.Syntax.{CIf, CLet, CPar, CRange, CSeq, Command, Decl, Definition, EApp, EArrAccess, EArrLiteral, EBinop, EBool, ECast, EInt, ERational, ERecAccess, ERecLiteral, EVar, Expr, FuncDef, Id, Prog, RecordDef, SecurityLabel, TSecLabeled, TVoid, Type}
 import fuselang.typechecker.SecurityEnv
 
 object TimingCheck {
@@ -13,12 +13,19 @@ object TimingCheck {
     override type Env = SecurityEnv.Env
     override val emptyEnv : Env = SecurityEnv.emptyEnv
 
-    def level_of_expr_seq(expressions: Seq[Expr])(implicit env : Env) : SecurityLabel =
+    private def level_of_expr_seq(expressions: Seq[Expr])(implicit env : Env) : SecurityLabel =
       (expressions map level_of_expr).foldLeft(SecurityLabel.Low){ (x, y) => x.max(y)}
-    def level_of_expr(expr: Expr)(implicit env: Env) : SecurityLabel = expr match
+    private def level_of_expr(expr: Expr)(implicit env: Env) : SecurityLabel = expr match
       case EInt(_, _) | ERational(_) | EBool(_) => SecurityLabel.Low
       case EBinop(_, l, r) => level_of_expr(l).max(level_of_expr(r))
-      case EArrAccess(x, e) => env.label_of_id(x).get 
+      case EArrAccess(x, e) => env.label_of_id(x).max(level_of_expr_seq(e))
+      // TODO figure out the deal with EPhysAccess
+      case EArrLiteral(e) => level_of_expr_seq(e)
+      case ERecAccess(e, x) => env.label_of_id(x).max(level_of_expr(e)) 
+      case ERecLiteral(e) => level_of_expr_seq(e.values.toSeq)
+      case EApp(_, e) => level_of_expr_seq(e)
+      case EVar(x) => env.label_of_id(x)
+      case ECast(e, _) => level_of_expr(e)
       case _ => ???
 
     override def checkC(cmd : Command)(implicit env : Env): Env = mergeCheckC({
