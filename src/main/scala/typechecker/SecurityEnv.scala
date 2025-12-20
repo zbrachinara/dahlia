@@ -27,14 +27,18 @@ object SecurityEnv:
       context: SecurityLabel = SecurityLabel.Low,
       securityMap: ScopedMap[Id, SecurityLabel] = ScopedMap(),
       commandMap:  ScopedMap[Command, Int] = ScopedMap(),
+      labelMap: ScopedMap[Expr, Boolean] = ScopedMap()
   )(implicit val res: Int)
     extends ScopeManager[Env] {
-    def update_label(key : Id, value : SecurityLabel) : Env =
+    def update_id_label(key : Id, value : SecurityLabel) : Env =
       this.copy(securityMap = securityMap.add(key, value).getOrThrow(AlreadyBound(key)))
 
     def update_block(key : Command, value : Int) : Env =
       this.copy(commandMap = commandMap.add(key, value).getOrThrow(AlreadyBound(Id(key.toString))))
 
+    def update_label(key: Expr, value: Boolean) : Env =
+      this.copy(labelMap = labelMap.add(key, value).getOrThrow(AlreadyBound(Id(key.toString))))
+      
     def add(key: Id | Command, value: SecurityLabel | Int): Env =
       (key, value) match {
         case (id: Id, lbl: SecurityLabel) =>
@@ -46,6 +50,12 @@ object SecurityEnv:
           this.copy(commandMap =
             commandMap.add(cmd, n).getOrThrow(AlreadyBound(Id(cmd.toString)))
           )
+
+        case (expr: Expr, b: Boolean) =>
+          this.copy(labelMap = 
+            labelMap.add(expr, b).getOrThrow(AlreadyBound(Id(expr.toString)))
+          )
+          
         case _ =>
           sys.error(s"Type mismatch in SecurityEnv.add: $key ↦ $value")
       }
