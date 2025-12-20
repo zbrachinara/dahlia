@@ -8,4 +8,3 @@ class TimingTests extends AnyFunSuite:
     TimeChecker.check(program)
 
 
-
