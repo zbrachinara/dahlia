@@ -38,7 +38,7 @@ object SecurityEnv:
 
     def update_label(key: Expr, value: Boolean) : Env =
       this.copy(labelMap = labelMap.add(key, value).getOrThrow(AlreadyBound(Id(key.toString))))
-      
+
     def add(key: Id | Command, value: SecurityLabel | Int): Env =
       (key, value) match {
         case (id: Id, lbl: SecurityLabel) =>
@@ -52,10 +52,10 @@ object SecurityEnv:
           )
 
         case (expr: Expr, b: Boolean) =>
-          this.copy(labelMap = 
+          this.copy(labelMap =
             labelMap.add(expr, b).getOrThrow(AlreadyBound(Id(expr.toString)))
           )
-          
+
         case _ =>
           sys.error(s"Type mismatch in SecurityEnv.add: $key ↦ $value")
       }
@@ -92,17 +92,19 @@ object SecurityEnv:
     /**
      * Get the resource associated with key if it is present.
      */
-    def get(k: Id | Command): Option[SecurityLabel | Int] =
+    def get(k: Id | Command | Expr): Option[SecurityLabel | Int | Boolean] =
       k match {
         case id: Id => securityMap.get(id)
         case cmd: Command => commandMap.get(cmd)
+        case expr: Expr => labelMap.get(expr)
       }
 
-    def apply(k: Id | Command): SecurityLabel | Int =
+    def apply(k: Id | Command | Expr): SecurityLabel | Int | Boolean =
       get(k).getOrThrow {
         k match {
           case id: Id => Unbound(id)
           case cmd: Command => Unbound(Id(cmd.toString))
+          case expr: Expr => Unbound(Id(expr.toString))
         }
       }
   }
