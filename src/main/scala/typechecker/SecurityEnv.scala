@@ -24,8 +24,9 @@ object SecurityEnv:
    *   it is balanced at the logical timestep level)
    */
   case class Env(
-    securityMap: ScopedMap[Id, SecurityLabel] = ScopedMap(),
-    commandMap:  ScopedMap[Command, Int] = ScopedMap(),
+      context: SecurityLabel = SecurityLabel.Low,
+      securityMap: ScopedMap[Id, SecurityLabel] = ScopedMap(),
+      commandMap:  ScopedMap[Command, Int] = ScopedMap(),
   )(implicit val res: Int)
     extends ScopeManager[Env] {
     def update_label(key : Id, value : SecurityLabel) : Env =
