@@ -3,7 +3,7 @@ package typechecker
 import fuselang.common.Checker.{Checker, PartialChecker}
 import fuselang.common.EnvHelpers.{ScopeManager, UnitEnv}
 import fuselang.common.Syntax
-import fuselang.common.Syntax.{CIf, CLet, CPar, CRange, CSeq, Command, Decl, Definition, EApp, EArrAccess, EArrLiteral, EBinop, EBool, ECast, EInt, EPhysAccess, ERational, ERecAccess, ERecLiteral, EVar, Expr, FuncDef, Id, Prog, RecordDef, SecurityLabel, TSecLabeled, TVoid, Type}
+import fuselang.common.Syntax.{CIf, CLet, CPar, CRange, CSeq, CUpdate, Command, Decl, Definition, EApp, EArrAccess, EArrLiteral, EBinop, EBool, ECast, EInt, EPhysAccess, ERational, ERecAccess, ERecLiteral, EVar, Expr, FuncDef, Id, Prog, RecordDef, SecurityLabel, TSecLabeled, TVoid, Type}
 import fuselang.typechecker.SecurityEnv
 
 object TimingCheck {
@@ -29,9 +29,39 @@ object TimingCheck {
       case ECast(e, _) => level_of_expr(e)
 
     override def checkC(cmd : Command)(implicit env : Env): Env = mergeCheckC({
-      case (c @ CIf(cond, c1, c2), env) =>
+      case (CIf(cond, c1, c2), env) =>
         val cond_label = level_of_expr(cond)
-        ???
+        val env1 = env.copy(context = env.context.max(cond_label))
+        env1.withScope({e =>
+          checkC(c1)
+          checkC(c2)
+        })
+        env
+
+      case (CUpdate(lhs, rhs), env) =>
+        val target_label = level_of_expr(lhs)
+        val source_label = level_of_expr(rhs)
+        if ! source_label.leq(target_label) then
+          throw new RuntimeException(s"Assigned $rhs to $lhs, but it is more secure than $lhs")
+        
+        env
+        
+      case (CLet(id, typ, expr), env) =>
+        val target_label = typ match
+          case Some(TSecLabeled(_, label, _)) => label
+          case _ => SecurityLabel.Low
+          
+        val env1 = env.update_id_label(id, target_label)
+        
+        // Check that flow is preserved
+        expr match
+          case Some(expr) =>
+            val source_label = level_of_expr(expr)
+            if ! source_label.leq(target_label) then
+              throw new RuntimeException(s"Assigned $expr to $id, but it is more secure than $id")
+          case _ =>
+            
+        env1
     })(cmd, env)
   }
 }
