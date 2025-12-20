@@ -140,4 +140,83 @@ class TimingTests extends AnyFunSuite:
       TimeChecker.check(program)
     }
 
+  test("ifStatementDeepNestedBalanced"):
+    val program = parseAst(
+      """
+        let h: bit<32> <H> = 1;
+        let l: bit<32> <L> = 2;
+
+        if (h == 1) {
+          if (l == 2) {
+            l;
+            ---
+            l;
+          }
+          else {
+            l;
+            ---
+            l;
+          }
+          ---
+          h;
+        }
+        else {
+          if (l == 3) {
+            l;
+            ---
+            l;
+          }
+          else {
+            l;
+            ---
+            l;
+          }
+          ---
+          h;
+        }
+      """
+    )
+    SecurityCheck.check(program)
+    TimeChecker.check(program)
+
+  test("ifStatementDeepNestedUnbalancedInner"):
+    val program = parseAst(
+      """
+        let h: bit<32> <H> = 1;
+        let l: bit<32> <L> = 2;
+
+        if (h == 1) {
+          if (l == 2) {
+            l;
+            ---
+            l;
+          }
+          else {
+            l;
+          }
+          ---
+          h;
+        }
+        else {
+          if (l == 3) {
+            l;
+            ---
+            l;
+          }
+          else {
+            l;
+            ---
+            l;
+          }
+          ---
+          h;
+        }
+      """
+    )
+    SecurityCheck.check(program)
+    assertThrows[RuntimeException] {
+      TimeChecker.check(program)
+    }
+
+
 
