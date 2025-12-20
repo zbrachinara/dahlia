@@ -15,7 +15,7 @@ import EnvHelpers._
 
 object SecurityEnv:
 
-  val emptyEnv: Env = Env()(1)
+  val emptyEnv: Env = Env()
 
   /**
    * A Security Env tracks:
@@ -28,7 +28,7 @@ object SecurityEnv:
       securityMap: ScopedMap[Id, SecurityLabel] = ScopedMap(),
       commandMap:  ScopedMap[Command, Int] = ScopedMap(),
       labelMap: ScopedMap[Expr, Boolean] = ScopedMap()
-  )(implicit val res: Int)
+                )
     extends ScopeManager[Env] {
     def update_id_label(key : Id, value : SecurityLabel) : Env =
       this.copy(securityMap = securityMap.add(key, value).getOrThrow(AlreadyBound(key)))
