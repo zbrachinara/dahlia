@@ -10,7 +10,7 @@ object TimingCheck {
 
   private object TimingCheck extends PartialChecker {
 
-    override type Env = SecurityEnv.Environment
+    override type Env = SecurityEnv.Env
     override val emptyEnv : Env = SecurityEnv.emptyEnv
 
     def level_of_expr_seq(expressions: Seq[Expr])(implicit env : Env) : SecurityLabel =
@@ -18,7 +18,7 @@ object TimingCheck {
     def level_of_expr(expr: Expr)(implicit env: Env) : SecurityLabel = expr match
       case EInt(_, _) | ERational(_) | EBool(_) => SecurityLabel.Low
       case EBinop(_, l, r) => level_of_expr(l).max(level_of_expr(r))
-//      case EArrAccess(x, e) => env.get(x).get 
+      case EArrAccess(x, e) => env.label_of_id(x).get 
       case _ => ???
 
     override def checkC(cmd : Command)(implicit env : Env): Env = mergeCheckC({
