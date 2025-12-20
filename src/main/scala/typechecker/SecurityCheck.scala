@@ -7,9 +7,9 @@ import fuselang.common.Syntax.SecurityLabel.{High, Low}
 import fuselang.common.Syntax.{CIf, CLet, CPar, CRange, CSeq, CUpdate, Command, Decl, Definition, EApp, EArrAccess, EArrLiteral, EBinop, EBool, ECast, EInt, EPhysAccess, ERational, ERecAccess, ERecLiteral, EVar, Expr, FuncDef, Id, Prog, RecordDef, SecurityLabel, TSecLabeled, TVoid, Type}
 import fuselang.typechecker.SecurityEnv
 
-object TimingCheck {
+object SecurityCheck {
 
-  private object TimingCheck extends PartialChecker {
+  private object SecurityCheck extends PartialChecker {
 
     override type Env = SecurityEnv.Env
     override val emptyEnv : Env = SecurityEnv.emptyEnv
