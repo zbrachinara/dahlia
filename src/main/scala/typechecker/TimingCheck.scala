@@ -29,7 +29,7 @@ object TimingCheck {
       case ECast(e, _) => level_of_expr(e)
 
     override def checkC(cmd : Command)(implicit env : Env): Env = mergeCheckC({
-      case (c @ CIf(cond, c1, c2), env) =>
+      case (c @ CIf(cond, c1, c2, secret), env) =>
         val cond_label = level_of_expr(cond)
         ???
     })(cmd, env)

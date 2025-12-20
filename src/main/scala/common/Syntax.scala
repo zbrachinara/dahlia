@@ -211,7 +211,7 @@ object Syntax:
       extends Command
   case class CView(id: Id, arrId: Id, dims: Seq[View]) extends Command
   case class CSplit(id: Id, arrId: Id, factors: Seq[Int]) extends Command
-  case class CIf(cond: Expr, cons: Command, alt: Command) extends Command
+  case class CIf(cond: Expr, cons: Command, alt: Command, var secret: Boolean) extends Command
   case class CFor(
       range: CRange,
       pipeline: Boolean,

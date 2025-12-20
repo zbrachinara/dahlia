@@ -124,7 +124,7 @@ object Cpp:
       case CPar(cmds) => vsep(cmds.map(emitCmd))
       case CSeq(cmds) => vsep(cmds.map(emitCmd), text("//---"))
       case l: CLet => emitLet(l)
-      case CIf(cond, cons, alt) => {
+      case CIf(cond, cons, alt, sec) => {
         text("if") <+> parens(cond) <+> scope(cons) <> (alt match {
           case CEmpty => emptyDoc
           case _:CIf => space <> text("else") <+> alt

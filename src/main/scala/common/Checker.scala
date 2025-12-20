@@ -75,7 +75,7 @@ object Checker:
       case CLet(_, _, eOpt) => eOpt.map(checkE).getOrElse(env)
       case CExpr(e) => checkE(e)
       case CReturn(e) => checkE(e)
-      case CIf(cond, c1, c2) => {
+      case CIf(cond, c1, c2, sec) => {
         val nEnv = checkE(cond)
         val e1 = nEnv.withScope(checkC(c1)(_))
         val e2 = nEnv.withScope(checkC(c2)(_))

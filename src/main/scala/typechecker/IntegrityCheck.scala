@@ -33,7 +33,7 @@ object IntegrityCheck {
       // TDOO do we really need to have CView and CSplit? or are they desugared immediately?
       case (CView(id, arrId, dims), _) => ??? // Functionally the same as a CLet (arrId -> id)
       case (CSplit(id, arrId, factors), _) => ??? // Functionally the same as a CLet (arrId -> id)
-      case (CIf(cond, cons, alt), _) => ??? // Complicated. Flesh this one out later
+      case (CIf(cond, cons, alt, _), _) => ??? // Complicated. Flesh this one out later
       case (CWhile(cond, pipeline, body), _) => ??? // Functionally the same as a CIf
       case (CUpdate(lhs, rhs), _) => ??? // Functionally the same as a let (rhs -> lhs)
       case (CReduce(rop, lhs, rhs), _) => ??? // Functionally the same as a let (rhs -> lhs)

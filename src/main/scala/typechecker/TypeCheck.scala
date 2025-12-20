@@ -268,7 +268,7 @@ object TypeChecker:
       case CBlock(cmd) => env.withScope(checkC(cmd)(_))
       case CPar(cmds) => cmds.foldLeft(env)({ case (env, c) => checkC(c)(env) })
       case CSeq(cmds) => cmds.foldLeft(env)({ case (env, c) => checkC(c)(env) })
-      case CIf(cond, cons, alt) => {
+      case CIf(cond, cons, alt, _) => {
         val (cTyp, e1) = checkE(cond)(env)
         cTyp.matchOrError(cond.pos, "if condition", "bool"):
           case _: TBool => ()

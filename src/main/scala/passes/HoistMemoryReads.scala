@@ -82,10 +82,10 @@ object HoistMemoryReads extends PartialTransformer:
       construct(CLet(id, typ, Some(expr)), env) -> emptyEnv
     }
 
-    case (CIf(cond, cons, alt), _) => {
+    case (CIf(cond, cons, alt, sec), _) => {
       val (expr, env) = rewriteE(cond)(emptyEnv)
       construct(
-        CIf(expr, rewrC(cons), rewrC(alt)),
+        CIf(expr, rewrC(cons), rewrC(alt), sec),
         env
       ) -> emptyEnv
     }

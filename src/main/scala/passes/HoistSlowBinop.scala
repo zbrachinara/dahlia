@@ -68,10 +68,10 @@ object HoistSlowBinop extends TypedPartialTransformer:
       val (expr, env) = rewriteE(e)(emptyEnv)
       construct(CLet(id, typ, Some(expr)), env)
     }
-    case (CIf(cond, cons, alt), _) => {
+    case (CIf(cond, cons, alt, sec), _) => {
       val (expr, env) = rewriteE(cond)(emptyEnv)
       construct(
-        CIf(expr, rewriteC(cons)(emptyEnv)._1, rewriteC(alt)(emptyEnv)._1),
+        CIf(expr, rewriteC(cons)(emptyEnv)._1, rewriteC(alt)(emptyEnv)._1, sec),
         env
       )
     }
