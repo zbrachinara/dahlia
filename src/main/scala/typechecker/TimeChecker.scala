@@ -1,10 +1,9 @@
 package typechecker
 
-import fuselang.common.Checker.{Checker, PartialChecker}
-import fuselang.common.EnvHelpers.{ScopeManager, UnitEnv}
+import fuselang.common.Checker.PartialChecker
 import fuselang.common.Syntax
-import fuselang.common.Syntax.SecurityLabel.{High, Low}
-import fuselang.common.Syntax.{CIf, CLet, CPar, CRange, CSeq, CUpdate, Command, Decl, Definition, EApp, EArrAccess, EArrLiteral, EBinop, EBool, ECast, EInt, EPhysAccess, ERational, ERecAccess, ERecLiteral, EVar, Expr, FuncDef, Id, Prog, RecordDef, SecurityLabel, TSecLabeled, TVoid, Type}
+import fuselang.common.Syntax.SecurityLabel.High
+import fuselang.common.Syntax.{CIf, CSeq, Command, SecurityLabel}
 import fuselang.typechecker.SecurityEnv
 
 
@@ -13,8 +12,21 @@ object TimeChecker extends PartialChecker {
     override type Env = SecurityEnv.Env
     override val emptyEnv: Env = SecurityEnv.emptyEnv
 
+  // count the number of logical timesteps: for sequencing we loop through and recursively check
+  // in case that there are logical timesteps nested inside commands, for if statements we count
+  // each branch separately and then compare them, if equal we return the number otherwise we bail
     private def numTimeSteps(c: Command): Int = c match {
-      case CSeq(c1) => c1.length - 1
+      case CSeq(cmds) =>
+        cmds.foldLeft(0) { (t, cmd) =>
+          val ct = numTimeSteps(cmd)
+          if ct < 0 then -1 else t + 1
+        }
+
+      case CIf(_, c1, c2, _) =>
+        val t1 = numTimeSteps(c1)
+        val t2 = numTimeSteps(c2)
+        if t1 == t2 then t1 else -1
+
       case _ => 0
     }
 
@@ -34,7 +46,7 @@ object TimeChecker extends PartialChecker {
             })
         }
         env
-      case (CSeq(c), env) => 
+      case (CSeq(c), env) =>
         c.foreach(checkC)
         env
     })(cmd, env)
