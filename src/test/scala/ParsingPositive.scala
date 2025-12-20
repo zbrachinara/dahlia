@@ -8,7 +8,7 @@ class ParsingTests extends AnyFunSuite:
     parseAst("decl x: bit<64> <H>;")
     parseAst("let x: bit<64> <H> = 1;")
     parseAst("decl x: bit<64>[10 bank 5] <L>;")
-    // parseAst("decl x: bit<64>[25 bank 5] <def foo(a: bool) {}>")
+    parseAst("decl x: bit<64>[25 bank 5] <f(y)>;")
 
   /* NOTE:
     Parser currently does not support using security labels
