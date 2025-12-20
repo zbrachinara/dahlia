@@ -3,6 +3,7 @@ package typechecker
 import fuselang.common.Checker.{Checker, PartialChecker}
 import fuselang.common.EnvHelpers.{ScopeManager, UnitEnv}
 import fuselang.common.Syntax
+import fuselang.common.Syntax.SecurityLabel.{High, Low}
 import fuselang.common.Syntax.{CIf, CLet, CPar, CRange, CSeq, CUpdate, Command, Decl, Definition, EApp, EArrAccess, EArrLiteral, EBinop, EBool, ECast, EInt, EPhysAccess, ERational, ERecAccess, ERecLiteral, EVar, Expr, FuncDef, Id, Prog, RecordDef, SecurityLabel, TSecLabeled, TVoid, Type}
 import fuselang.typechecker.SecurityEnv
 
@@ -29,8 +30,10 @@ object TimingCheck {
       case ECast(e, _) => level_of_expr(e)
 
     override def checkC(cmd : Command)(implicit env : Env): Env = mergeCheckC({
-      case (CIf(cond, c1, c2), env) =>
+      case (c @ CIf(cond, c1, c2, _), env) =>
         val cond_label = level_of_expr(cond)
+        if cond_label != Low then
+          c.secret = true
         val env1 = env.copy(context = env.context.max(cond_label))
         env1.withScope({e =>
           checkC(c1)
