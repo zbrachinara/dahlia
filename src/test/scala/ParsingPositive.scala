@@ -237,3 +237,17 @@ class ParsingTests extends AnyFunSuite:
       let x = (0x9e3779b9 as ubit<32>);
       let y = (023615674671 as ubit<32>);
       """)
+
+  test("Sequential Composition"):
+    parseAst("""
+      let x = (0x9e3779b9 as ubit<32>);
+      ---
+      let y = (023615674671 as ubit<32>);
+    """)
+    parseAst("""
+      let x = (0x9e3779b9 as ubit<32>);
+      ---
+      let y = (023615674671 as ubit<32>);
+      ---
+      let z = (0xabcdef as ubit<32>);
+    """)
