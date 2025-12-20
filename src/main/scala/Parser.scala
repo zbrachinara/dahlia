@@ -300,9 +300,9 @@ case class Parser(input: String):
     positioned(
       P(kw("if") ~/ parens(expr) ~ block ~ (kw("else") ~/ block).?).map({
         case (cond, CBlock(cons), Some(CBlock(alt))) =>
-          CIf(cond, cons, alt)
+          CIf(cond, cons, alt, false)
         case (cond, CBlock(cons), None) =>
-          CIf(cond, cons, CEmpty)
+          CIf(cond, cons, CEmpty, false)
         case _ =>
           throw CompilerError.Impossible(
             "Result of parsing a block command was not CBlock"

@@ -38,7 +38,7 @@ object Transformer:
           transferPosHelper(oldCmd, par)
           transferPosHelper(oldCmd, combine)
         }
-        case CIf(_, cons: Command, alt: Command) => {
+        case CIf(_, cons: Command, alt: Command, sec) => {
           transferPosHelper(oldCmd, cons)
           transferPosHelper(oldCmd, alt)
         }
@@ -197,11 +197,11 @@ object Transformer:
         val (e1, env1) = rewriteE(e)
         CReturn(e1) -> env1
       }
-      case CIf(cond, c1, c2) => {
+      case CIf(cond, c1, c2, sec) => {
         val (nCond, env1) = rewriteE(cond)
         val (nc1, env2) = env1.withScopeAndRet(rewriteC(c1)(_))
         val (nc2, env3) = env1.withScopeAndRet(rewriteC(c2)(_))
-        CIf(nCond, nc1, nc2) -> (env2 merge env3)
+        CIf(nCond, nc1, nc2, sec) -> (env2 merge env3)
       }
       case fo @ CFor(_, _, par, combine) => {
         val (npar, env1) = env.withScopeAndRet(rewriteC(par)(_))

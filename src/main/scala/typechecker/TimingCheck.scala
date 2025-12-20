@@ -43,16 +43,16 @@ object TimingCheck {
         val source_label = level_of_expr(rhs)
         if ! source_label.leq(target_label) then
           throw new RuntimeException(s"Assigned $rhs to $lhs, but it is more secure than $lhs")
-        
+
         env
-        
+
       case (CLet(id, typ, expr), env) =>
         val target_label = typ match
           case Some(TSecLabeled(_, label, _)) => label
           case _ => SecurityLabel.Low
-          
+
         val env1 = env.update_id_label(id, target_label)
-        
+
         // Check that flow is preserved
         expr match
           case Some(expr) =>
@@ -60,7 +60,7 @@ object TimingCheck {
             if ! source_label.leq(target_label) then
               throw new RuntimeException(s"Assigned $expr to $id, but it is more secure than $id")
           case _ =>
-            
+
         env1
     })(cmd, env)
   }

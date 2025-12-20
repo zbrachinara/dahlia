@@ -913,7 +913,7 @@ private class CalyxBackendHelper {
         group.withPos(c) // adding position to the generated group as well
         (group :: other_st, Enable(group.id).withPos(c), store)
       }
-      case CIf(cond, tbranch, fbranch) => {
+      case CIf(cond, tbranch, fbranch, sec) => {
         val condOut = emitExpr(cond)
         val (tStruct, tCon, _) = emitCmd(tbranch)
         val (fStruct, fCon, _) = emitCmd(fbranch)

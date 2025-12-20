@@ -211,7 +211,7 @@ object Syntax:
       extends Command
   case class CView(id: Id, arrId: Id, dims: Seq[View]) extends Command
   case class CSplit(id: Id, arrId: Id, factors: Seq[Int]) extends Command
-  case class CIf(cond: Expr, cons: Command, alt: Command) extends Command
+  case class CIf(cond: Expr, cons: Command, alt: Command, var secret: Boolean) extends Command
   case class CFor(
       range: CRange,
       pipeline: Boolean,
@@ -255,7 +255,7 @@ object Syntax:
       else
         CPar(flat)
   object CSeq:
-    def smart(c1: Command, c2: Command): Command = (c1, c2) match
+    def smart(c1: Command, c2: Command, n: Int): Command = (c1, c2) match
       case (l: CSeq, r: CSeq) => l.copy(cmds = l.cmds ++ r.cmds)
       case (l: CSeq, r) => l.copy(cmds = l.cmds :+ r)
       case (l, r: CSeq) => r.copy(cmds = l +: r.cmds)
@@ -274,7 +274,7 @@ object Syntax:
       if flat.length == 0 then
         CEmpty
       else if flat.length == 1 then
-        flat(0)
+        flat.head
       else
         CSeq(flat)
 

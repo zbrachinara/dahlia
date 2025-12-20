@@ -420,7 +420,7 @@ object LowerUnroll extends PartialTransformer:
               )
             }
           })
-        CIf(cond, newCommand(accExpr), CEmpty)
+        CIf(cond, newCommand(accExpr), CEmpty, false)
       }
     })
 

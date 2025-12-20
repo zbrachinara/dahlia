@@ -150,7 +150,7 @@ object Pretty:
       text("let") <+> id <>
         typ.map(colon <+> emitTyp(_)).getOrElse(emptyDoc) <>
         e.map(space <> equal <+> emitExpr(_)).getOrElse(emptyDoc) <> semi
-    case CIf(cond, cons, alt) => {
+    case CIf(cond, cons, alt, sec) => {
       text("if") <+> parens(cond) <+> scope(cons) <> (alt match {
         case CEmpty => emptyDoc
         case _: CIf => space <> text("else") <+> alt
