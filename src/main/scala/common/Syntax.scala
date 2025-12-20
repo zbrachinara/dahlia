@@ -206,7 +206,7 @@ object Syntax:
   sealed trait Command extends PositionalWithSpan:
     var attributes: Map[String, Int] = Map()
   case class CPar(cmds: Seq[Command]) extends Command
-  case class CSeq(cmds: Seq[Command]) extends Command
+  case class CSeq(cmds: Seq[Command], numTimesteps: Int) extends Command
   case class CLet(id: Id, var typ: Option[Type], e: Option[Expr])
       extends Command
   case class CView(id: Id, arrId: Id, dims: Seq[View]) extends Command
@@ -255,18 +255,18 @@ object Syntax:
       else
         CPar(flat)
   object CSeq:
-    def smart(c1: Command, c2: Command): Command = (c1, c2) match
+    def smart(c1: Command, c2: Command, n: Int): Command = (c1, c2) match
       case (l: CSeq, r: CSeq) => l.copy(cmds = l.cmds ++ r.cmds)
       case (l: CSeq, r) => l.copy(cmds = l.cmds :+ r)
       case (l, r: CSeq) => r.copy(cmds = l +: r.cmds)
       case (CEmpty, r) => r
       case (l, CEmpty) => l
-      case _ => CSeq(Seq(c1, c2))
+      case _ => CSeq(Seq(c1, c2), n)
 
-    def smart(cmds: Seq[Command]): Command =
+    def smart(cmds: Seq[Command], timesteps: Int): Command =
       val flat = cmds.flatMap(cmd =>
         cmd match {
-          case CSeq(cs) => cs
+          case CSeq(cs, n) => cs
           case CEmpty => Seq()
           case _ => Seq(cmd)
         }
@@ -274,9 +274,9 @@ object Syntax:
       if flat.length == 0 then
         CEmpty
       else if flat.length == 1 then
-        flat(0)
+        flat.head
       else
-        CSeq(flat)
+        CSeq(flat, timesteps)
 
   sealed trait Definition extends PositionalWithSpan
 
